@@ -1,0 +1,24 @@
+SELECT
+    CASE type
+        WHEN 'subkey' THEN path
+        ELSE RTRIM(path, REPLACE(path, '\', ''))
+    END AS key_path,
+    CASE type
+        WHEN 'subkey' THEN ''
+        ELSE name
+    END AS value_name,
+    CASE type
+        WHEN 'subkey' THEN ''
+        ELSE type
+    END AS value_type,
+    data AS value_data,
+    STRFTIME('%Y-%m-%dT%H:%M:%SZ', DATETIME(mtime, 'unixepoch')) AS last_time_modified
+FROM registry
+WHERE
+    path LIKE 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Version'
+    AND NOT EXISTS (
+        SELECT 1
+        FROM registry r
+        WHERE r.path LIKE 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5\Version'
+    )
+ORDER BY key_path ASC
